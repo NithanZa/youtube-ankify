@@ -12,6 +12,7 @@
     "@ai-sdk/google": "^1.0.0",
     "@ai-sdk/openai": "^1.0.0",
     "@phosphor-icons/react": "^2.1.7",
+    "@vercel/analytics": "^2.0.1",
     "ai": "^4.0.0",
     "clsx": "^2.1.1",
     "groq-sdk": "^0.7.0",
