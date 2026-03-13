@@ -23,7 +23,7 @@ export default function AnkiConnectPage() {
                 </Link>
 
                 <header className="mb-10">
-                    <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-[#1E3A5F] mb-3">
+                    <h1 className="font-(family-name:--font-playfair) text-4xl font-bold text-[#1E3A5F] mb-3">
                         AnkiConnect
                     </h1>
                     <p className="text-[#4A5568] text-lg">
@@ -36,7 +36,7 @@ export default function AnkiConnectPage() {
                     {/* Step 1 */}
                     <div className="bg-white rounded-xl border-2 border-[#D4CFC4] p-6">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm shrink-0">
                                 1
                             </span>
                             <h2 className="font-semibold text-[#1E3A5F] text-lg flex items-center gap-2">
@@ -71,7 +71,7 @@ export default function AnkiConnectPage() {
                     {/* Step 2 */}
                     <div className="bg-white rounded-xl border-2 border-[#D4CFC4] p-6">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm shrink-0">
                                 2
                             </span>
                             <h2 className="font-semibold text-[#1E3A5F] text-lg flex items-center gap-2">
@@ -104,7 +104,7 @@ export default function AnkiConnectPage() {
                     {/* Step 3 */}
                     <div className="bg-white rounded-xl border-2 border-[#D4CFC4] p-6">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm shrink-0">
                                 3
                             </span>
                             <h2 className="font-semibold text-[#1E3A5F] text-lg flex items-center gap-2">
@@ -142,7 +142,7 @@ export default function AnkiConnectPage() {
                     {/* Step 4 */}
                     <div className="bg-white rounded-xl border-2 border-[#D4CFC4] p-6">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <span className="w-8 h-8 rounded-full bg-[#1E5A8E] text-white flex items-center justify-center font-bold text-sm shrink-0">
                                 4
                             </span>
                             <h2 className="font-semibold text-[#1E3A5F] text-lg flex items-center gap-2">
@@ -166,7 +166,7 @@ export default function AnkiConnectPage() {
                         <div className="flex items-start gap-3">
                             <CheckCircleIcon
                                 size={20}
-                                className="text-[#B7860B] flex-shrink-0 mt-0.5"
+                                className="text-[#B7860B] shrink-0 mt-0.5"
                                 weight="fill"
                             />
                             <div>

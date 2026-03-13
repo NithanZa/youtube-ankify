@@ -12,7 +12,6 @@ Transform YouTube videos into high-quality Anki flashcards using AI. This applic
 - 🔄 **Regeneration Options** - Make cards harder or generate more cards with one click
 - 📤 **Multiple Export Formats**:
   - CSV for manual import
-  - .apkg for one-click import
   - Direct push to Anki via AnkiConnect
 - 🎨 **Vintage Aesthetic** - Beautiful, classic UI with serif typography and warm color palette
 
@@ -71,7 +70,6 @@ pnpm dev
 6. **Review & Edit** - Preview, edit, or delete individual cards
 7. **Export** - Choose your preferred export method:
    - Download CSV file
-   - Download .apkg file
    - Send directly to Anki (requires AnkiConnect)
 
 ### Regeneration Options
@@ -98,7 +96,6 @@ youtube-ankify/
 │   │   ├── transcript/         # Transcript fetching
 │   │   ├── generate-cards/     # AI card generation
 │   │   ├── export-csv/         # CSV export
-│   │   ├── export-apkg/        # .apkg export
 │   │   └── anki-connect/       # AnkiConnect integration
 │   ├── globals.css             # Global styles (vintage aesthetic)
 │   ├── layout.tsx              # Root layout
@@ -172,7 +169,6 @@ The AI generation includes several quality guardrails:
 - **Vercel AI SDK** - Multi-provider AI integration
 - **Zod** - Schema validation
 - **youtube-transcript-plus** - Reliable YouTube transcript extraction
-- **anki-apkg-export** - .apkg file generation
 - **Phosphor Icons** - Icon library
 
 ## License

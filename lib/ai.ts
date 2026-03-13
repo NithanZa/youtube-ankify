@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { AIProvider } from "./types";
 
 export class AIProviderError extends Error {
@@ -41,10 +42,7 @@ export function getProviderClient(
                     "MISSING_KEY",
                 );
             }
-            const anthropicClient = createOpenAI({
-                baseURL: "https://api.anthropic.com/v1",
-                apiKey: anthropicKey,
-            });
+            const anthropicClient = createAnthropic({ apiKey: anthropicKey });
             return anthropicClient(model);
 
         case "google":

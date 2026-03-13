@@ -40,6 +40,7 @@ export default function YouTubeAnkifyApp() {
     const [includeBasic, setIncludeBasic] = useState(true);
     const [includeCloze, setIncludeCloze] = useState(false);
     const [ankiAvailable, setAnkiAvailable] = useState<boolean | null>(null);
+    const [ankiSuccess, setAnkiSuccess] = useState<string | null>(null);
 
     useEffect(() => {
         const check = () =>
@@ -337,7 +338,7 @@ export default function YouTubeAnkifyApp() {
             }
 
             setError(null);
-            alert(
+            setAnkiSuccess(
                 `Successfully added ${successCount} out of ${cards.length} cards to Anki!`,
             );
         } catch (err) {
@@ -373,7 +374,7 @@ export default function YouTubeAnkifyApp() {
         <div className="min-h-screen bg-[#F5F1E8] py-12 px-4">
             <div className="max-w-5xl mx-auto">
                 <header className="text-center mb-12">
-                    <h1 className="font-[family-name:var(--font-playfair)] text-5xl font-bold text-[#1E3A5F] mb-3">
+                    <h1 className="font-(family-name:--font-playfair) text-5xl font-bold text-[#1E3A5F] mb-3">
                         YouTube to Anki
                     </h1>
                     <p className="text-lg text-[#5A6F8C] italic">
@@ -385,9 +386,20 @@ export default function YouTubeAnkifyApp() {
                     <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-start gap-3">
                         <WarningIcon
                             size={24}
-                            className="text-red-600 flex-shrink-0 mt-0.5"
+                            className="text-red-600 shrink-0 mt-0.5"
                         />
                         <p className="text-red-800">{error}</p>
+                    </div>
+                )}
+
+                {ankiSuccess && (
+                    <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-start gap-3">
+                        <CheckCircleIcon
+                            size={24}
+                            weight="fill"
+                            className="text-green-600 shrink-0 mt-0.5"
+                        />
+                        <p className="text-green-800">{ankiSuccess}</p>
                     </div>
                 )}
 
@@ -574,7 +586,7 @@ export default function YouTubeAnkifyApp() {
                 {step === "transcript" && transcript && (
                     <div className="space-y-6">
                         <div className="bg-[#EAE6DD] rounded-lg shadow-lg p-8 border-2 border-[#D4CFC4]">
-                            <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-[#1E3A5F] mb-4">
+                            <h2 className="font-(family-name:--font-playfair) text-2xl font-bold text-[#1E3A5F] mb-4">
                                 Transcript Retrieved
                             </h2>
                             <div className="bg-white rounded-lg p-4 border border-[#D4CFC4] max-h-64 overflow-y-auto mb-6">
@@ -600,7 +612,7 @@ export default function YouTubeAnkifyApp() {
                     <div className="space-y-6">
                         <div className="bg-[#EAE6DD] rounded-lg shadow-lg p-8 border-2 border-[#D4CFC4]">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-[#1E3A5F]">
+                                <h2 className="font-(family-name:--font-playfair) text-2xl font-bold text-[#1E3A5F]">
                                     Generated Cards ({cards.length})
                                 </h2>
                             </div>
@@ -773,7 +785,7 @@ export default function YouTubeAnkifyApp() {
 
                 {step === "export" && ankiDecks.length > 0 && (
                     <div className="bg-[#EAE6DD] rounded-lg shadow-lg p-8 border-2 border-[#D4CFC4]">
-                        <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-[#1E3A5F] mb-6">
+                        <h2 className="font-(family-name:--font-playfair) text-2xl font-bold text-[#1E3A5F] mb-6">
                             Send to AnkiConnect
                         </h2>
                         <div className="space-y-4">
