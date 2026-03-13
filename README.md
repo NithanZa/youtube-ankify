@@ -1,36 +1,184 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube to Anki - AI-Powered Flashcard Generator
 
-## Getting Started
+Transform YouTube videos into high-quality Anki flashcards using AI. This application fetches video transcripts, generates intelligent flashcards with customizable difficulty levels, and exports them in multiple formats.
 
-First, run the development server:
+## Features
 
+- 🎥 **YouTube Transcript Extraction** - Automatically fetch transcripts from YouTube videos
+- 🤖 **AI-Powered Card Generation** - Generate flashcards using OpenAI, Anthropic, Google, or Groq models
+- 📊 **Multiple Card Types** - Supports both Basic (Q&A) and Cloze (fill-in-the-blank) cards
+- 🎯 **Difficulty Tiers** - Choose from Few/Easy, Medium/Medium, or Many/Hard generation modes
+- ✏️ **Edit & Review** - Preview and edit generated cards before export
+- 🔄 **Regeneration Options** - Make cards harder or generate more cards with one click
+- 📤 **Multiple Export Formats**:
+  - CSV for manual import
+  - .apkg for one-click import
+  - Direct push to Anki via AnkiConnect
+- 🎨 **Vintage Aesthetic** - Beautiful, classic UI with serif typography and warm color palette
+
+## Prerequisites
+
+- Node.js 18+ and pnpm
+- At least one AI provider API key (OpenAI, Anthropic, Google, or Groq)
+- Anki desktop (optional, for AnkiConnect integration)
+
+## Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd youtube-ankify
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Add your API keys to `.env.local`:
+```env
+# Choose at least one provider
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-## Learn More
+5. Run the development server:
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Basic Workflow
 
-## Deploy on Vercel
+1. **Enter YouTube URL** - Paste any YouTube video URL with captions
+2. **Select AI Provider** - Choose your preferred AI provider and model
+3. **Choose Difficulty** - Select from three difficulty/quantity tiers:
+   - **Few/Easy**: 10-15 simple recall cards
+   - **Medium/Medium**: 20-30 balanced cards with application questions
+   - **Many/Hard**: 40-60 comprehensive cards with deeper reasoning
+4. **Fetch Transcript** - Click to retrieve the video transcript
+5. **Generate Cards** - AI generates flashcards based on your settings
+6. **Review & Edit** - Preview, edit, or delete individual cards
+7. **Export** - Choose your preferred export method:
+   - Download CSV file
+   - Download .apkg file
+   - Send directly to Anki (requires AnkiConnect)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Regeneration Options
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+While reviewing cards, you can:
+- **Make Harder** - Regenerate with increased difficulty level
+- **Generate More** - Regenerate with 50% more cards at the same difficulty
+
+### AnkiConnect Setup
+
+To use the direct Anki integration:
+
+1. Install [Anki](https://apps.ankiweb.net/)
+2. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on
+3. Restart Anki
+4. Keep Anki running while using the "Send to Anki" feature
+
+## Project Structure
+
+```
+youtube-ankify/
+├── app/
+│   ├── api/                    # API routes
+│   │   ├── transcript/         # Transcript fetching
+│   │   ├── generate-cards/     # AI card generation
+│   │   ├── export-csv/         # CSV export
+│   │   ├── export-apkg/        # .apkg export
+│   │   └── anki-connect/       # AnkiConnect integration
+│   ├── globals.css             # Global styles (vintage aesthetic)
+│   ├── layout.tsx              # Root layout
+│   └── page.tsx                # Main page
+├── components/
+│   └── YouTubeAnkifyApp.tsx    # Main application component
+├── lib/
+│   ├── ai.ts                   # AI provider configuration
+│   ├── anki.ts                 # Anki export utilities
+│   ├── flashcards.ts           # Card generation logic
+│   ├── transcript.ts           # Transcript fetching
+│   ├── types.ts                # TypeScript types & Zod schemas
+│   └── youtube.ts              # YouTube URL parsing
+└── types/
+    └── anki-apkg-export.d.ts   # Type definitions
+```
+
+## AI Providers
+
+### OpenAI
+- Models: GPT-5.4, GPT-5.1, GPT-5.1 Codex
+- Best for: Balanced quality and speed
+
+### Anthropic
+- Models: Claude Opus 4.6, Claude Sonnet 4.6
+- Best for: Nuanced understanding and detailed cards
+
+### Google
+- Models: Gemini 3.1 Pro, Gemini 3 Flash, Gemini 2.5 Flash, Gemini 2.5 Pro
+- Best for: Fast generation with good quality
+
+### Groq
+- Models: Llama 3.3 70B Versatile, Llama 3.1 8B Instant, GPT-OSS 120B, GPT-OSS 20B
+- Best for: Very fast generation with open-source models
+
+## Card Quality Features
+
+The AI generation includes several quality guardrails:
+- One concept per card (atomic knowledge)
+- Specific, unambiguous questions
+- No vague pronouns without context
+- Deduplication of similar cards
+- Mix of Basic and Cloze card types
+- Source timestamp tracking (optional)
+
+## Troubleshooting
+
+### "No transcript available"
+- Ensure the video has captions enabled
+- Try a different video with auto-generated or manual captions
+
+### "API key not found"
+- Check that your `.env.local` file exists and contains valid API keys
+- Restart the development server after adding keys
+
+### AnkiConnect not connecting
+- Ensure Anki desktop is running
+- Verify AnkiConnect add-on is installed
+- Check that Anki is not blocking the connection (firewall settings)
+
+### Cards not generating
+- Verify your API key is valid and has credits
+- Check the browser console for detailed error messages
+- Try a different AI provider/model
+
+## Technologies Used
+
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling with vintage aesthetic
+- **Vercel AI SDK** - Multi-provider AI integration
+- **Zod** - Schema validation
+- **youtube-transcript-plus** - Reliable YouTube transcript extraction
+- **anki-apkg-export** - .apkg file generation
+- **Phosphor Icons** - Icon library
+
+## License
+
+MIT
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
