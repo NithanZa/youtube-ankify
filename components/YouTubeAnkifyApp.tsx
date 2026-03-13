@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import {
     PlayIcon,
     SparkleIcon,
@@ -372,6 +374,33 @@ export default function YouTubeAnkifyApp() {
 
     return (
         <div className="min-h-screen bg-[#F5F1E8] py-12 px-4">
+            <div className="fixed top-4 left-4 flex items-center gap-1.5 z-50">
+                <a
+                    href="https://nithan.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Image
+                        src="/nithan.svg"
+                        alt="nithan"
+                        width={32}
+                        height={32}
+                        className="rounded-full"
+                    />
+                </a>
+                <span className="text-[#5A6F8C] font-medium select-none">
+                    /
+                </span>
+                <Link href="/">
+                    <Image
+                        src="/youtube-ankify-logo.png"
+                        alt="youtube-ankify"
+                        width={32}
+                        height={32}
+                        className="h-8 w-auto"
+                    />
+                </Link>
+            </div>
             <div className="max-w-5xl mx-auto">
                 <header className="text-center mb-12">
                     <h1 className="font-(family-name:--font-playfair) text-5xl font-bold text-[#1E3A5F] mb-3">
