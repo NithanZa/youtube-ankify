@@ -19,7 +19,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "youtube-transcript-plus": "^1.2.0",
+    "youtube-transcript-plus": "^2.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
