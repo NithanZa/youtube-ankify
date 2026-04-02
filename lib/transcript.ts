@@ -101,9 +101,12 @@ function isRetryable(err: TranscriptError): boolean {
 
 function buildProxyConfig(proxyUrl: string): TranscriptConfig {
     const proxyFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { HttpsProxyAgent } = await import("https-proxy-agent");
-        const agent = new HttpsProxyAgent(proxyUrl);
-        return fetch(input, { ...init, ...(agent as unknown as object) });
+        const { ProxyAgent, fetch: undiciFetch } = await import("undici");
+        const dispatcher = new ProxyAgent(proxyUrl);
+        return undiciFetch(input as Parameters<typeof undiciFetch>[0], {
+            ...(init as object),
+            dispatcher,
+        }) as unknown as Response;
     };
 
     return {
