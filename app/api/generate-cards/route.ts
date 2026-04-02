@@ -4,6 +4,7 @@ import { generateFlashcards, regenerateFlashcards } from "@/lib/flashcards";
 import {
     GenerateCardsRequestSchema,
     RegenerateActionSchema,
+    FlashcardSchema,
     type DifficultyTier,
 } from "@/lib/types";
 import { AIProviderError } from "@/lib/ai";
@@ -11,8 +12,8 @@ import { AIProviderError } from "@/lib/ai";
 const RegenerateRequestSchema = GenerateCardsRequestSchema.extend({
     action: RegenerateActionSchema,
     currentDifficulty: z.string(),
+    currentCards: z.array(FlashcardSchema),
     apiKey: z.string().optional(),
-    currentCardCount: z.number().optional(),
 });
 
 const GenerateRequestSchema = GenerateCardsRequestSchema.extend({
@@ -32,9 +33,9 @@ export async function POST(request: NextRequest) {
                 model,
                 action,
                 currentDifficulty,
+                currentCards,
                 videoUrl,
                 apiKey,
-                currentCardCount,
             } = RegenerateRequestSchema.parse(body);
 
             const result = await regenerateFlashcards(
@@ -44,8 +45,8 @@ export async function POST(request: NextRequest) {
                 currentDifficulty as DifficultyTier,
                 action,
                 videoUrl,
+                currentCards,
                 apiKey,
-                currentCardCount,
             );
 
             return NextResponse.json({

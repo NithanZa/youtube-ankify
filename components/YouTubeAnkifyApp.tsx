@@ -14,7 +14,8 @@ import {
     Flashcard,
     AIProvider,
     DifficultyTier,
-    DIFFICULTY_CONFIGS,
+    DifficultyLevel,
+    QuantityLevel,
 } from "@/lib/types";
 import { PROVIDER_MODELS } from "@/lib/ai";
 
@@ -25,8 +26,11 @@ export default function YouTubeAnkifyApp() {
     const [url, setUrl] = useState("");
     const [provider, setProvider] = useState<AIProvider>("groq");
     const [model, setModel] = useState("llama-3.3-70b-versatile");
-    const [difficulty, setDifficulty] =
-        useState<DifficultyTier>("medium-medium");
+    const [quantityLevel, setQuantityLevel] = useState<QuantityLevel>("medium");
+    const [difficultyLevel, setDifficultyLevel] =
+        useState<DifficultyLevel>("medium");
+    const difficulty: DifficultyTier =
+        `${quantityLevel}-${difficultyLevel}` as DifficultyTier;
     const [transcript, setTranscript] = useState<TranscriptResponse | null>(
         null,
     );
@@ -41,8 +45,12 @@ export default function YouTubeAnkifyApp() {
     const [includeCloze, setIncludeCloze] = useState(false);
     const [ankiAvailable, setAnkiAvailable] = useState<boolean | null>(null);
     const [ankiSuccess, setAnkiSuccess] = useState<string | null>(null);
+    const [regenerateCount, setRegenerateCount] = useState(0);
+    const REGENERATE_LIMIT = 10;
 
     useEffect(() => {
+        if (step !== "cards") return;
+
         const check = () =>
             fetch("/api/anki-connect", {
                 method: "POST",
@@ -58,7 +66,7 @@ export default function YouTubeAnkifyApp() {
         check();
         const interval = setInterval(check, 15000);
         return () => clearInterval(interval);
-    }, []);
+    }, [step]);
 
     const handleFetchTranscript = async () => {
         if (!url.trim()) {
@@ -147,6 +155,8 @@ export default function YouTubeAnkifyApp() {
     ) => {
         if (!transcript) return;
 
+        if (regenerateCount >= REGENERATE_LIMIT) return;
+
         setLoading(true);
         setError(null);
 
@@ -161,7 +171,7 @@ export default function YouTubeAnkifyApp() {
                     difficulty,
                     action,
                     currentDifficulty: difficulty,
-                    currentCardCount: cards.length,
+                    currentCards: cards,
                     videoUrl: url,
                     apiKey: apiKey || undefined,
                 }),
@@ -180,14 +190,23 @@ export default function YouTubeAnkifyApp() {
                     (c.type === "cloze" && includeCloze),
             );
             setCards(filtered);
+            setRegenerateCount((c) => c + 1);
+            const diffLevels: DifficultyLevel[] = ["easy", "medium", "hard"];
+            const qtyLevels: QuantityLevel[] = ["few", "medium", "many"];
             if (action === "make-harder") {
-                setDifficulty(
-                    difficulty === "few-easy" ? "medium-medium" : "many-hard",
-                );
+                const idx = diffLevels.indexOf(difficultyLevel);
+                if (idx < diffLevels.length - 1)
+                    setDifficultyLevel(diffLevels[idx + 1]);
             } else if (action === "make-easier") {
-                setDifficulty(
-                    difficulty === "many-hard" ? "medium-medium" : "few-easy",
-                );
+                const idx = diffLevels.indexOf(difficultyLevel);
+                if (idx > 0) setDifficultyLevel(diffLevels[idx - 1]);
+            } else if (action === "generate-more") {
+                const idx = qtyLevels.indexOf(quantityLevel);
+                if (idx < qtyLevels.length - 1)
+                    setQuantityLevel(qtyLevels[idx + 1]);
+            } else if (action === "generate-less") {
+                const idx = qtyLevels.indexOf(quantityLevel);
+                if (idx > 0) setQuantityLevel(qtyLevels[idx - 1]);
             }
         } catch (err) {
             setError(
@@ -525,47 +544,105 @@ export default function YouTubeAnkifyApp() {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-[#1E3A5F] mb-3">
-                                    Difficulty & Quantity
-                                </label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {(
-                                        [
-                                            "few-easy",
-                                            "medium-medium",
-                                            "many-hard",
-                                        ] as DifficultyTier[]
-                                    ).map((tier) => {
-                                        const config = DIFFICULTY_CONFIGS[tier];
-                                        return (
-                                            <button
-                                                key={tier}
-                                                onClick={() =>
-                                                    setDifficulty(tier)
-                                                }
-                                                className={`p-4 rounded-lg border-2 transition-all ${
-                                                    difficulty === tier
-                                                        ? "border-[#1E5A8E] bg-[#1E5A8E] text-white"
-                                                        : "border-[#D4CFC4] bg-white text-[#1E3A5F] hover:border-[#1E5A8E]"
-                                                }`}
-                                            >
-                                                <div className="font-semibold mb-1">
-                                                    {tier === "few-easy" &&
-                                                        "Few / Easy"}
-                                                    {tier === "medium-medium" &&
-                                                        "Medium / Medium"}
-                                                    {tier === "many-hard" &&
-                                                        "Many / Hard"}
-                                                </div>
-                                                <div className="text-sm opacity-90">
-                                                    {config.targetCount.min}-
-                                                    {config.targetCount.max}{" "}
-                                                    cards
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-[#1E3A5F] mb-3">
+                                        Difficulty
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => {
+                                                const levels: DifficultyLevel[] =
+                                                    ["easy", "medium", "hard"];
+                                                const idx =
+                                                    levels.indexOf(
+                                                        difficultyLevel,
+                                                    );
+                                                if (idx > 0)
+                                                    setDifficultyLevel(
+                                                        levels[idx - 1],
+                                                    );
+                                            }}
+                                            disabled={
+                                                difficultyLevel === "easy"
+                                            }
+                                            className="w-9 h-9 rounded-lg border-2 border-[#D4CFC4] bg-white text-[#1E3A5F] font-bold text-lg flex items-center justify-center hover:border-[#1E5A8E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            −
+                                        </button>
+                                        <div className="flex-1 text-center px-4 py-2.5 rounded-lg border-2 border-[#1E5A8E] bg-[#1E5A8E] text-white font-semibold capitalize">
+                                            {difficultyLevel}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const levels: DifficultyLevel[] =
+                                                    ["easy", "medium", "hard"];
+                                                const idx =
+                                                    levels.indexOf(
+                                                        difficultyLevel,
+                                                    );
+                                                if (idx < levels.length - 1)
+                                                    setDifficultyLevel(
+                                                        levels[idx + 1],
+                                                    );
+                                            }}
+                                            disabled={
+                                                difficultyLevel === "hard"
+                                            }
+                                            className="w-9 h-9 rounded-lg border-2 border-[#D4CFC4] bg-white text-[#1E3A5F] font-bold text-lg flex items-center justify-center hover:border-[#1E5A8E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-[#1E3A5F] mb-3">
+                                        Quantity
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => {
+                                                const levels: QuantityLevel[] =
+                                                    ["few", "medium", "many"];
+                                                const idx =
+                                                    levels.indexOf(
+                                                        quantityLevel,
+                                                    );
+                                                if (idx > 0)
+                                                    setQuantityLevel(
+                                                        levels[idx - 1],
+                                                    );
+                                            }}
+                                            disabled={quantityLevel === "few"}
+                                            className="w-9 h-9 rounded-lg border-2 border-[#D4CFC4] bg-white text-[#1E3A5F] font-bold text-lg flex items-center justify-center hover:border-[#1E5A8E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            −
+                                        </button>
+                                        <div className="flex-1 text-center px-4 py-2.5 rounded-lg border-2 border-[#1E5A8E] bg-[#1E5A8E] text-white font-semibold capitalize">
+                                            {quantityLevel
+                                                .charAt(0)
+                                                .toUpperCase() +
+                                                quantityLevel.slice(1)}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const levels: QuantityLevel[] =
+                                                    ["few", "medium", "many"];
+                                                const idx =
+                                                    levels.indexOf(
+                                                        quantityLevel,
+                                                    );
+                                                if (idx < levels.length - 1)
+                                                    setQuantityLevel(
+                                                        levels[idx + 1],
+                                                    );
+                                            }}
+                                            disabled={quantityLevel === "many"}
+                                            className="w-9 h-9 rounded-lg border-2 border-[#D4CFC4] bg-white text-[#1E3A5F] font-bold text-lg flex items-center justify-center hover:border-[#1E5A8E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -611,10 +688,57 @@ export default function YouTubeAnkifyApp() {
                 {step === "cards" && cards.length > 0 && (
                     <div className="space-y-6">
                         <div className="bg-[#EAE6DD] rounded-lg shadow-lg p-8 border-2 border-[#D4CFC4]">
-                            <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center justify-between mb-4">
                                 <h2 className="font-(family-name:--font-playfair) text-2xl font-bold text-[#1E3A5F]">
                                     Generated Cards ({cards.length})
                                 </h2>
+                            </div>
+
+                            {regenerateCount >= REGENERATE_LIMIT && (
+                                <p className="text-xs text-[#5A6F8C] italic mb-3">
+                                    Regeneration limit reached (
+                                    {REGENERATE_LIMIT}/{REGENERATE_LIMIT}).
+                                </p>
+                            )}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+                                {(
+                                    [
+                                        {
+                                            action: "make-easier",
+                                            label: "Make Easier",
+                                        },
+                                        {
+                                            action: "make-harder",
+                                            label: "Make Harder",
+                                        },
+                                        {
+                                            action: "generate-less",
+                                            label: "Fewer Cards",
+                                        },
+                                        {
+                                            action: "generate-more",
+                                            label: "More Cards",
+                                        },
+                                    ] as const
+                                ).map(({ action, label }) => (
+                                    <button
+                                        key={action}
+                                        onClick={() => handleRegenerate(action)}
+                                        disabled={
+                                            loading ||
+                                            regenerateCount >= REGENERATE_LIMIT
+                                        }
+                                        className="px-3 py-2 rounded-lg border-2 border-[#D4CFC4] bg-white text-[#1E3A5F] text-sm font-medium hover:border-[#1E5A8E] hover:text-[#1E5A8E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                    >
+                                        <ArrowsClockwiseIcon
+                                            size={14}
+                                            className={
+                                                loading ? "animate-spin" : ""
+                                            }
+                                        />
+                                        {label}
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="space-y-4 max-h-96 overflow-y-auto mb-6">
