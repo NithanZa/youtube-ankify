@@ -5,7 +5,8 @@ import {
     FlashcardSchema,
     TranscriptResponse,
     DifficultyTier,
-    DIFFICULTY_CONFIGS,
+    DifficultyLevel,
+    QuantityLevel,
     AIProvider,
     GenerateCardsResponse,
 } from "./types";
@@ -54,10 +55,17 @@ export async function generateFlashcards(
     videoUrl: string,
     apiKey?: string,
 ): Promise<GenerateCardsResponse> {
-    const config = DIFFICULTY_CONFIGS[difficulty];
+    const [quantityLevel, difficultyLevel] = difficulty.split("-") as [
+        QuantityLevel,
+        DifficultyLevel,
+    ];
     const client = getProviderClient(provider, model, apiKey);
-    const systemPrompt = buildSystemPrompt(difficulty, config);
-    const userPrompt = buildUserPrompt(transcript, config);
+    const systemPrompt = buildSystemPrompt(quantityLevel, difficultyLevel);
+    const userPrompt = buildUserPrompt(
+        transcript,
+        quantityLevel,
+        difficultyLevel,
+    );
     return runGeneration(
         client,
         systemPrompt,
@@ -70,34 +78,43 @@ export async function generateFlashcards(
 }
 
 function buildSystemPrompt(
-    difficulty: DifficultyTier,
-    config: (typeof DIFFICULTY_CONFIGS)[DifficultyTier],
+    quantityLevel: QuantityLevel,
+    difficultyLevel: DifficultyLevel,
 ): string {
-    const complexityInstructions = {
-        simple: `
-- Focus on core concepts and key facts
-- Use straightforward, direct questions
+    const quantityInstructions: Record<QuantityLevel, string> = {
+        few: `- Cover only the most essential concepts — prioritise breadth over depth
+- Skip supporting details, examples, and edge cases
+- Aim for the smallest set of cards that still captures the core message`,
+        medium: `- Cover key concepts and important supporting details
+- Include a balanced mix of definitions, relationships, and application
+- Skip minor tangents but don't omit meaningful context`,
+        many: `- Cover the full scope of the content comprehensively
+- Include supporting details, examples, edge cases, and nuance
+- Err on the side of more cards rather than fewer`,
+    };
+
+    const difficultyInstructions: Record<DifficultyLevel, string> = {
+        easy: `- Use straightforward, direct questions
 - Answers should be concise (1-2 sentences)
-- Prioritize definitions and basic understanding`,
-        balanced: `
-- Mix conceptual understanding with application
+- Prioritise definitions, basic facts, and simple recall
+- Avoid "why/how" questions that require reasoning`,
+        medium: `- Mix factual recall with conceptual understanding
 - Include some "why" and "how" questions
-- Answers can be more detailed (2-3 sentences)
+- Answers can be 2-3 sentences
 - Include comparisons and relationships between concepts`,
-        comprehensive: `
-- Deep conceptual understanding and nuanced distinctions
-- Include edge cases and subtle implications
+        hard: `- Focus on deep understanding, nuanced distinctions, and reasoning
+- Include edge cases, subtle implications, and challenging application scenarios
 - Answers should be thorough but focused (3-4 sentences)
-- Test reasoning, analysis, and synthesis
-- Include challenging application scenarios`,
+- Test analysis, synthesis, and evaluation — not just recall`,
     };
 
     return `You are an expert at creating high-quality Anki flashcards from educational content.
 
-Your goal: Generate ${config.targetCount.min}-${config.targetCount.max} flashcards at ${difficulty} difficulty level.
+QUANTITY (${quantityLevel.toUpperCase()} — how many cards to produce):
+${quantityInstructions[quantityLevel]}
 
-DIFFICULTY LEVEL: ${config.complexity.toUpperCase()}
-${complexityInstructions[config.complexity]}
+DIFFICULTY (${difficultyLevel.toUpperCase()} — how hard each card should be):
+${difficultyInstructions[difficultyLevel]}
 
 CARD TYPES:
 1. Basic cards: Simple Q&A format
@@ -142,9 +159,13 @@ Return a JSON object with a "cards" array. Each card must have:
 
 function buildUserPrompt(
     transcript: TranscriptResponse,
-    config: (typeof DIFFICULTY_CONFIGS)[DifficultyTier],
+    quantityLevel: QuantityLevel,
+    difficultyLevel: DifficultyLevel,
 ): string {
-    return `Generate ${config.targetCount.min}-${config.targetCount.max} high-quality flashcards from this transcript.
+    return `Generate flashcards from this transcript.
+
+Quantity: ${quantityLevel}
+Difficulty: ${difficultyLevel}
 
 VIDEO TRANSCRIPT:
 ${transcript.fullText}
@@ -153,7 +174,6 @@ Remember:
 - Mix basic and cloze card types appropriately
 - Ensure each card tests ONE atomic concept
 - Make questions specific and unambiguous
-- Target difficulty: ${config.description}
 
 Generate the flashcards now.`;
 }
@@ -218,65 +238,91 @@ export async function regenerateFlashcards(
     currentDifficulty: DifficultyTier,
     action: "make-harder" | "make-easier" | "generate-more" | "generate-less",
     videoUrl: string,
+    currentCards: Flashcard[],
     apiKey?: string,
-    currentCardCount?: number,
 ): Promise<GenerateCardsResponse> {
-    let newDifficulty: DifficultyTier;
-    let countOverride: { min: number; max: number } | undefined;
+    const diffLevels: DifficultyLevel[] = ["easy", "medium", "hard"];
+    const qtyLevels: QuantityLevel[] = ["few", "medium", "many"];
+
+    let [quantityLevel, difficultyLevel] = currentDifficulty.split("-") as [
+        QuantityLevel,
+        DifficultyLevel,
+    ];
 
     if (action === "make-harder") {
-        newDifficulty =
-            currentDifficulty === "few-easy" ? "medium-medium" : "many-hard";
-        if (currentCardCount) {
-            countOverride = { min: currentCardCount, max: currentCardCount };
-        }
+        const idx = diffLevels.indexOf(difficultyLevel);
+        if (idx < diffLevels.length - 1) difficultyLevel = diffLevels[idx + 1];
     } else if (action === "make-easier") {
-        newDifficulty =
-            currentDifficulty === "many-hard" ? "medium-medium" : "few-easy";
-        if (currentCardCount) {
-            countOverride = { min: currentCardCount, max: currentCardCount };
-        }
+        const idx = diffLevels.indexOf(difficultyLevel);
+        if (idx > 0) difficultyLevel = diffLevels[idx - 1];
     } else if (action === "generate-more") {
-        newDifficulty = currentDifficulty;
-        const base = DIFFICULTY_CONFIGS[currentDifficulty].targetCount;
-        countOverride = {
-            min: Math.floor(base.min * 1.5),
-            max: Math.floor(base.max * 1.5),
-        };
+        const idx = qtyLevels.indexOf(quantityLevel);
+        if (idx < qtyLevels.length - 1) quantityLevel = qtyLevels[idx + 1];
     } else {
-        newDifficulty = currentDifficulty;
-        const base = DIFFICULTY_CONFIGS[currentDifficulty].targetCount;
-        countOverride = {
-            min: Math.max(5, Math.floor(base.min * 0.6)),
-            max: Math.max(8, Math.floor(base.max * 0.6)),
-        };
+        const idx = qtyLevels.indexOf(quantityLevel);
+        if (idx > 0) quantityLevel = qtyLevels[idx - 1];
     }
 
-    if (countOverride) {
-        const config = {
-            ...DIFFICULTY_CONFIGS[newDifficulty],
-            targetCount: countOverride,
-        };
-        const client = getProviderClient(provider, model, apiKey);
-        const systemPrompt = buildSystemPrompt(newDifficulty, config);
-        const userPrompt = buildUserPrompt(transcript, config);
-        return runGeneration(
-            client,
-            systemPrompt,
-            userPrompt,
-            newDifficulty,
-            provider,
-            model,
-            transcript.videoId,
-        );
-    }
+    const newDifficulty =
+        `${quantityLevel}-${difficultyLevel}` as DifficultyTier;
 
-    return generateFlashcards(
+    const client = getProviderClient(provider, model, apiKey);
+    const systemPrompt = buildSystemPrompt(quantityLevel, difficultyLevel);
+    const userPrompt = buildRegenerateUserPrompt(
         transcript,
+        quantityLevel,
+        difficultyLevel,
+        action,
+        currentCards,
+    );
+    return runGeneration(
+        client,
+        systemPrompt,
+        userPrompt,
+        newDifficulty,
         provider,
         model,
-        newDifficulty,
-        videoUrl,
-        apiKey,
+        transcript.videoId,
     );
+}
+
+function buildRegenerateUserPrompt(
+    transcript: TranscriptResponse,
+    quantityLevel: QuantityLevel,
+    difficultyLevel: DifficultyLevel,
+    action: "make-harder" | "make-easier" | "generate-more" | "generate-less",
+    currentCards: Flashcard[],
+): string {
+    const actionInstructions: Record<typeof action, string> = {
+        "make-harder": `Rewrite ALL of the existing cards to be harder (difficulty: ${difficultyLevel}). Each card should require deeper reasoning, more nuance, or test subtler implications. Keep the same topics but increase cognitive demand. Return exactly ${currentCards.length} cards.`,
+        "make-easier": `Rewrite ALL of the existing cards to be easier (difficulty: ${difficultyLevel}). Simplify questions and answers — focus on direct recall and clear definitions. Keep the same topics but reduce cognitive demand. Return exactly ${currentCards.length} cards.`,
+        "generate-more": `Regenerate flashcards [more than the current quantity (${quantityLevel})]. New cards should cover topics and concepts NOT already covered by the existing cards. Do NOT duplicate existing cards.`,
+        "generate-less": `Select and return a SHORTER subset of the best cards from the existing set (current quantity: ${quantityLevel}). Keep only the most important cards. Return exactly ${currentCards.length} cards or fewer.`,
+    };
+
+    const serializedCards = currentCards
+        .map((c, i) => {
+            if (c.type === "basic")
+                return `[${i + 1}] Basic — Q: ${c.front} / A: ${c.back}`;
+            return `[${i + 1}] Cloze — ${c.text}`;
+        })
+        .join("\n");
+
+    return `${actionInstructions[action]}
+
+EXISTING CARDS (${currentCards.length} total):
+${serializedCards}
+
+VIDEO TRANSCRIPT:
+${transcript.fullText}
+
+Quantity: ${quantityLevel}
+Difficulty: ${difficultyLevel}
+
+Remember:
+- Mix basic and cloze card types appropriately
+- Ensure each card tests ONE atomic concept
+- Make questions specific and unambiguous
+
+Generate the flashcards now.`;
 }

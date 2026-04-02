@@ -2,10 +2,19 @@ import { z } from "zod";
 
 export const DifficultyTierSchema = z.enum([
     "few-easy",
+    "few-medium",
+    "few-hard",
+    "medium-easy",
     "medium-medium",
+    "medium-hard",
+    "many-easy",
+    "many-medium",
     "many-hard",
 ]);
 export type DifficultyTier = z.infer<typeof DifficultyTierSchema>;
+
+export type QuantityLevel = "few" | "medium" | "many";
+export type DifficultyLevel = "easy" | "medium" | "hard";
 
 export const AIProviderSchema = z.enum([
     "openai",
@@ -133,20 +142,33 @@ export interface DifficultyConfig {
     description: string;
 }
 
-export const DIFFICULTY_CONFIGS: Record<DifficultyTier, DifficultyConfig> = {
-    "few-easy": {
-        targetCount: { min: 10, max: 15 },
-        complexity: "simple",
-        description: "Simple recall, core concepts only",
-    },
-    "medium-medium": {
-        targetCount: { min: 20, max: 30 },
-        complexity: "balanced",
-        description: "Balanced depth with application questions",
-    },
-    "many-hard": {
-        targetCount: { min: 40, max: 60 },
-        complexity: "comprehensive",
-        description: "Comprehensive coverage with deeper reasoning",
-    },
+const QUANTITY_COUNTS: Record<QuantityLevel, { min: number; max: number }> = {
+    few: { min: 10, max: 15 },
+    medium: { min: 20, max: 30 },
+    many: { min: 40, max: 60 },
 };
+
+const DIFFICULTY_COMPLEXITY: Record<
+    DifficultyLevel,
+    DifficultyConfig["complexity"]
+> = {
+    easy: "simple",
+    medium: "balanced",
+    hard: "comprehensive",
+};
+
+export const DIFFICULTY_CONFIGS: Record<DifficultyTier, DifficultyConfig> =
+    Object.fromEntries(
+        (["few", "medium", "many"] as QuantityLevel[]).flatMap((qty) =>
+            (["easy", "medium", "hard"] as DifficultyLevel[]).map(
+                (diff): [DifficultyTier, DifficultyConfig] => [
+                    `${qty}-${diff}` as DifficultyTier,
+                    {
+                        targetCount: QUANTITY_COUNTS[qty],
+                        complexity: DIFFICULTY_COMPLEXITY[diff],
+                        description: "",
+                    },
+                ],
+            ),
+        ),
+    ) as Record<DifficultyTier, DifficultyConfig>;
