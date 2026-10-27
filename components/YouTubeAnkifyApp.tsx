@@ -54,7 +54,7 @@ export default function YouTubeAnkifyApp() {
         if (step !== "cards") return;
 
         const check = () =>
-            fetch("/api/anki-connect", {
+            fetch("/ankificator/api/anki-connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "version" }),
@@ -80,7 +80,7 @@ export default function YouTubeAnkifyApp() {
         setError(null);
 
         try {
-            const response = await fetch("/api/transcript", {
+            const response = await fetch("/ankificator/api/transcript", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ url }),
@@ -112,7 +112,7 @@ export default function YouTubeAnkifyApp() {
         setError(null);
 
         try {
-            const response = await fetch("/api/generate-cards", {
+            const response = await fetch("/ankificator/api/generate-cards", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -163,7 +163,7 @@ export default function YouTubeAnkifyApp() {
         setError(null);
 
         try {
-            const response = await fetch("/api/generate-cards", {
+            const response = await fetch("/ankificator/api/generate-cards", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -241,7 +241,7 @@ export default function YouTubeAnkifyApp() {
             const clozeCards = cards.filter((c) => c.type === "cloze");
 
             if (basicCards.length > 0) {
-                const res = await fetch("/api/export-csv", {
+                const res = await fetch("/ankificator/api/export-csv", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ cards: basicCards }),
@@ -251,7 +251,7 @@ export default function YouTubeAnkifyApp() {
             }
 
             if (clozeCards.length > 0) {
-                const res = await fetch("/api/export-csv", {
+                const res = await fetch("/ankificator/api/export-csv", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ cards: clozeCards }),
@@ -273,7 +273,7 @@ export default function YouTubeAnkifyApp() {
         setError(null);
 
         try {
-            const response = await fetch("/api/anki-connect", {
+            const response = await fetch("/ankificator/api/anki-connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "version" }),
@@ -287,7 +287,7 @@ export default function YouTubeAnkifyApp() {
                 );
             }
 
-            const decksResponse = await fetch("/api/anki-connect", {
+            const decksResponse = await fetch("/ankificator/api/anki-connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "deckNames" }),
@@ -323,14 +323,14 @@ export default function YouTubeAnkifyApp() {
             const targetDeck = selectedDeck || deckName;
 
             if (!selectedDeck && deckName) {
-                await fetch("/api/anki-connect", {
+                await fetch("/ankificator/api/anki-connect", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action: "createDeck", deckName }),
                 });
             }
 
-            const response = await fetch("/api/anki-connect", {
+            const response = await fetch("/ankificator/api/anki-connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -400,7 +400,7 @@ export default function YouTubeAnkifyApp() {
                     rel="noopener noreferrer"
                 >
                     <Image
-                        src="/nithan.svg"
+                        src="/ankificator/nithan.svg"
                         alt="nithan"
                         width={32}
                         height={32}
@@ -412,7 +412,7 @@ export default function YouTubeAnkifyApp() {
                 </span>
                 <Link href="/">
                     <Image
-                        src="/youtube-ankify-logo.png"
+                        src="/ankificator/youtube-ankify-logo.png"
                         alt="youtube-ankify"
                         width={32}
                         height={32}
